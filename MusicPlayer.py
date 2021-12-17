@@ -8,6 +8,8 @@ import os
 pygame.init()
 pygame.mixer.init()
 
+# saveKey = ["volume", "dirList", "playing", "hotkey"]
+
 sta = {"volume": 0.5, "list": [".\\music"], "playing": None}
 isPlaying = True
 musicList = []
@@ -16,6 +18,8 @@ musicIndex = 0
 def replay():
     pygame.mixer.music.load(musicList[musicIndex])
     pygame.mixer.music.play()
+    global isPlaying
+    isPlaying = True
     print(f"开始播放：{musicList[musicIndex]}")
 
 def nextMusic():
