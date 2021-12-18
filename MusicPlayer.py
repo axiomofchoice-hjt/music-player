@@ -16,6 +16,7 @@ defaultSta = {
     "loadList": [],
     "playing": None,
     "hotkey": {
+        "play": None,
         "next": "ctrl+alt+right",
         "pause": "ctrl+alt+space",
         "prev": "ctrl+alt+left",
@@ -57,7 +58,7 @@ class Methods:
 
     def random(self): # 随机跳歌
         nextIndex = random.randint(0, len(sta["musicList"]) - 1)
-        while (nextIndex == sta["musicIndex"]):
+        while len(sta["musicList"]) >= 2 and nextIndex == sta["musicIndex"]:
             nextIndex = random.randint(0, len(sta["musicList"]) - 1)
         sta["musicIndex"] = nextIndex
         print("随机跳歌")
@@ -134,7 +135,8 @@ def stateLoad():
             settings = json.loads(f.read())
             for i in set(settings.keys()) & saveKey:
                 sta[i] = settings[i]
-
+    else:
+        stateSave()
     sta["musicList"] = []
     for path in sta["loadList"]:
         if os.path.isdir(path):
@@ -144,6 +146,7 @@ def stateLoad():
             addMusic(path)
     if len(sta["musicList"]) == 0:
         print("未加载音乐，请在 data.json 中配置 loadList")
+        input("任意键退出")
         exit()
     
     sta["musicIndex"] = None
