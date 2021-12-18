@@ -12,6 +12,12 @@ if True:  # 防止代码格式化时被排到 environ 赋值前
 saveKey = {"volume", "loadList",
            "playing", "hotkey", "initialize", "finish"}
 
+# 命令行重定向
+cmdRedirects = {
+    "ls": "musicList",
+    "exit": "quit",
+}
+
 # 默认 sta 内容
 defaultSta = {
     "volume": 50,
@@ -40,9 +46,14 @@ sta = {}
 
 class Methods:
     def run(self, cmd):  # 运行命令
-        self.__getattribute__(cmd)()
+        spt = cmd.split()
+        method = spt[0]
+        if method in cmdRedirects:
+            method = cmdRedirects[method]
+        args = spt[1:]
+        self.__getattribute__(method)(args)
 
-    def play(self):  # 加载并播放
+    def play(self, args=None):  # 加载并播放
         sta["playing"] = sta["musicList"][sta["musicIndex"]]
         pygame.mixer.music.load(sta["playing"])
         pygame.mixer.music.play()
@@ -50,17 +61,17 @@ class Methods:
         print(f"""开始播放 {sta["playing"]}""")
         stateSave()
 
-    def next(self):  # 下一首
+    def next(self, args=None):  # 下一首
         sta["musicIndex"] = (sta["musicIndex"] + 1) % len(sta["musicList"])
         print("下一首")
         self.play()
 
-    def prev(self):  # 上一首
+    def prev(self, args=None):  # 上一首
         sta["musicIndex"] = (sta["musicIndex"] - 1) % len(sta["musicList"])
         print("上一首")
         self.play()
 
-    def random(self):  # 随机跳歌
+    def random(self, args=None):  # 随机跳歌
         nextIndex = random.randint(0, len(sta["musicList"]) - 1)
         while len(sta["musicList"]) >= 2 and nextIndex == sta["musicIndex"]:
             nextIndex = random.randint(0, len(sta["musicList"]) - 1)
@@ -68,7 +79,7 @@ class Methods:
         print("随机跳歌")
         self.play()
 
-    def pause(self):  # 暂停 / 继续播放
+    def pause(self, args=None):  # 暂停 / 继续播放
         if sta["isPlaying"]:
             pygame.mixer.music.pause()
             print("暂停播放")
@@ -77,21 +88,49 @@ class Methods:
             print("继续播放")
         sta["isPlaying"] ^= True
 
-    def quit(self):  # 退出
+    def quit(self, args=None):  # 退出
         pygame.mixer.quit()
         exit()
 
-    def volumeUp(self):  # 调高音量
+    def volumeUp(self, args=None):  # 调高音量
         sta["volume"] = min(100, sta["volume"] + 5)
         pygame.mixer.music.set_volume(sta["volume"] / 100)
         print(f"""当前音量 {sta["volume"] / 100 :.2f}""")
         stateSave()
 
-    def volumeDown(self):  # 调低音量
+    def volumeDown(self, args=None):  # 调低音量
         sta["volume"] = max(0, sta["volume"] - 5)
         pygame.mixer.music.set_volume(sta["volume"] / 100)
         print(f"""当前音量 {sta["volume"] / 100 :.2f}""")
         stateSave()
+
+    def musicList(self, args=None):  # 显示音乐列表
+        for (index, i) in enumerate(sta["musicList"]):
+            print(f"""({index + 1}) {i}""")
+
+    def to(self, args=None):  # 播放指定序号的音乐
+        if type(args) != list or len(args) < 1 or int(args[0]) - 1 < 0 or int(args[0]) - 1 >= len(sta["musicList"]):
+            print("参数错误")
+            return
+        sta["musicIndex"] = int(args[0]) - 1
+        self.play()
+
+    def setFinish(self, args=[]):  # 修改 Finish 配置项
+        sta["finish"] = list(args)
+        stateSave()
+
+    def setInitialize(self, args=[]):  # 修改 initialize 配置项
+        sta["initialize"] = list(args)
+        stateSave()
+
+    # def setHotkey(self, args=[]):  # 修改热键，不写了，摆烂了
+    #     if type(args) != list or len(args) < 1:
+    #         print("参数错误")
+    #         return
+    #     if len(args) == 1:
+    #         sta["hotkey"][args[0]] = None
+    #     else:
+    #         sta["hotkey"][args[0]] = args[1]
 
 
 class CheckFinish(threading.Thread):  # 一个线程，在音乐结束后执行 finish 命令，每秒检查一次
