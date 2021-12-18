@@ -6,10 +6,8 @@ import time
 import pygame
 import os
 
-pygame.init()
-pygame.mixer.init()
-
-saveKey: set = {"volume", "loadList", "playing", "hotkey", "initialize", "finish"}
+saveKey: set = {"volume", "loadList",
+                "playing", "hotkey", "initialize", "finish"}
 
 defaultSta = {
     "volume": 50,
@@ -35,7 +33,7 @@ sta = {}
 
 
 class Methods:
-    def run(self, cmd): # 运行命令
+    def run(self, cmd):  # 运行命令
         self.__getattribute__(cmd)()
 
     def play(self):  # 加载并播放
@@ -56,7 +54,7 @@ class Methods:
         print("上一首")
         self.play()
 
-    def random(self): # 随机跳歌
+    def random(self):  # 随机跳歌
         nextIndex = random.randint(0, len(sta["musicList"]) - 1)
         while len(sta["musicList"]) >= 2 and nextIndex == sta["musicIndex"]:
             nextIndex = random.randint(0, len(sta["musicList"]) - 1)
@@ -89,7 +87,9 @@ class Methods:
         print(f"""当前音量 {sta["volume"] / 100 :.2f}""")
         stateSave()
 
+
 methods = Methods()
+
 
 def checkEnd():  # 检查播放完毕，并下一首
     if not pygame.mixer.music.get_busy() and sta["isPlaying"]:
@@ -121,7 +121,7 @@ def stateSave():
 
 
 def addMusic(file):
-    if os.path.isfile(file):
+    if os.path.isfile(file) and file[-4:] == ".mp3":
         sta["musicList"].append(file)
         print(f"""添加音乐 ({len(sta["musicList"])}) {file}""")
 
@@ -141,14 +141,14 @@ def stateLoad():
     for path in sta["loadList"]:
         if os.path.isdir(path):
             for i in os.listdir(path):
-                addMusic(path + "\\" + i)
+                addMusic(path + "/" + i)
         else:
             addMusic(path)
     if len(sta["musicList"]) == 0:
-        print("未加载音乐，请在 data.json 中配置 loadList")
+        print("音乐列表为空，请在 data.json 中配置 loadList")
         input("任意键退出")
         exit()
-    
+
     sta["musicIndex"] = None
     for index, file in enumerate(sta["musicList"]):
         if sta["playing"] is not None and os.path.isfile(sta["playing"]) and os.path.samefile(file, sta["playing"]):
@@ -159,22 +159,28 @@ def stateLoad():
             print(f"""未找到音乐 {sta["playing"]}""")
     pygame.mixer.music.set_volume(sta["volume"] / 100)
 
-stateLoad()
 
-methods.play()
-for i in sta["initialize"]:
-    methods.run(i)
+if __name__ == "__main__":
+    pygame.init()
+    pygame.mixer.init()
 
-for i in sta["hotkey"]:
-    if sta["hotkey"][i] is not None:
-        keyboard.add_hotkey(
-            sta["hotkey"][i], methods.__getattribute__(i))
+    stateLoad()
 
-mainLoop.start()
-while True:
-    cmd = input()
-    try:
-        methods.run(cmd)
-    except AttributeError:
-        print(f"""未知命令 "{cmd}\"""")
-        pass
+    methods.play()
+    for i in sta["initialize"]:
+        methods.run(i)
+
+    for i in sta["hotkey"]:
+        if sta["hotkey"][i] is not None:
+            keyboard.add_hotkey(
+                sta["hotkey"][i], methods.__getattribute__(i), suppress=True)
+
+    mainLoop.start()
+
+    while True:
+        cmd = input()
+        try:
+            methods.run(cmd)
+        except AttributeError:
+            print(f"""未知命令 "{cmd}\"""")
+            pass
