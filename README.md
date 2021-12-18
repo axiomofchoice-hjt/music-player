@@ -18,20 +18,20 @@
 
 hotkey 表示所有的热键，其中：
 
-- play 表示重新播放当前音乐
-- next 表示目录的下一首
-- prev 表示目录的上一首
-- random 表示随机的下一首（仅仅不会两遍播放同一首音乐）
+- play 重新播放当前音乐
+- next 播放目录的下一首
+- prev 播放目录的上一首
+- random 播放随机的下一首（仅仅不会两遍播放同一首音乐）
 - pause 暂停或继续
 - quit 退出
 - volumeDown 调低音量
 - volumeUp 调高音量
 
-initialize 项表示启动时运行的命令（命令参考 hotkey 配置项），可以写 `initialize: ["pause"]` 表示程序运行后暂停播放。
+initialize 项表示启动时运行的命令（命令参考 hotkey 配置项），可以写 `initialize: ["pause"]` 表示程序启动后暂停播放。
 
 finish 项表示一首音乐播放完后运行的命令（命令参考 hotkey 配置项），例如：
 
-- `finish: ["next"]` 表示切目录的下一首歌。
-- `finish: ["next", "pause"]` 表示切目录的下一首歌并暂停（注意有先后顺序）。
-- `finish: ["random"]` 表示切随机的下一首歌。
-- `finish: ["play"]` 表示重新播放（单曲循环）
+- `finish: ["next"]` 切目录的下一首歌。
+- `finish: ["next", "pause"]` 切目录的下一首歌并暂停（注意有先后顺序）。
+- `finish: ["random"]` 切随机的下一首歌。
+- `finish: ["play"]` 重新播放（单曲循环）.
