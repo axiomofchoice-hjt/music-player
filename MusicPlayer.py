@@ -223,7 +223,7 @@ if __name__ == "__main__":
 
     # 命令行输入
     while True:
-        cmd = input()
+        cmd = input(">> ")
         try:
             methods.run(cmd)
         except AttributeError:
