@@ -3,12 +3,16 @@ import json
 import keyboard
 import threading
 import time
-import pygame
 import os
+os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
+if True:  # 防止代码格式化时被排到 environ 赋值前
+    import pygame
 
-saveKey: set = {"volume", "loadList",
-                "playing", "hotkey", "initialize", "finish"}
+# data.json 的内容
+saveKey = {"volume", "loadList",
+           "playing", "hotkey", "initialize", "finish"}
 
+# 默认 sta 内容
 defaultSta = {
     "volume": 50,
     "loadList": [],
@@ -29,6 +33,8 @@ defaultSta = {
     "musicList": [],
     "musicIndex": None
 }
+
+# 状态
 sta = {}
 
 
@@ -88,30 +94,29 @@ class Methods:
         stateSave()
 
 
-methods = Methods()
-
-
-def checkEnd():  # 检查播放完毕，并下一首
-    if not pygame.mixer.music.get_busy() and sta["isPlaying"]:
-        for i in sta["finish"]:
-            methods.run(i)
-
-
-class MainLoop(threading.Thread):
+class CheckFinish(threading.Thread):  # 一个线程，在音乐结束后执行 finish 命令，每秒检查一次
     def __init__(self):
         threading.Thread.__init__(self)
 
     def run(self):
         while pygame.mixer.get_init():
-            checkEnd()
+            if not pygame.mixer.music.get_busy() and sta["isPlaying"]:
+                for i in sta["finish"]:
+                    methods.run(i)
             time.sleep(1)
 
 
-mainLoop = MainLoop()
-# mainLoop()
+methods = Methods()
+checkFinish = CheckFinish()
 
 
-def stateSave():
+def addMusic(file):  # 添加音乐
+    if os.path.isfile(file) and file[-4:].lower() == ".mp3":
+        sta["musicList"].append(file)
+        print(f"""添加音乐 ({len(sta["musicList"])}) {file}""")
+
+
+def stateSave():  # 保存为 data.json
     out = {}
     for i in saveKey:
         out[i] = sta[i]
@@ -120,13 +125,7 @@ def stateSave():
                 indent=4, separators=(',', ': ')))
 
 
-def addMusic(file):
-    if os.path.isfile(file) and file[-4:] == ".mp3":
-        sta["musicList"].append(file)
-        print(f"""添加音乐 ({len(sta["musicList"])}) {file}""")
-
-
-def stateLoad():
+def stateLoad():  # 加载 data.json
     global sta
 
     sta = defaultSta.copy()
@@ -142,8 +141,10 @@ def stateLoad():
         if os.path.isdir(path):
             for i in os.listdir(path):
                 addMusic(path + "/" + i)
-        else:
+        elif os.path.isfile(path):
             addMusic(path)
+        else:
+            print(f"""error: {path} 不是文件或目录""")
     if len(sta["musicList"]) == 0:
         print("音乐列表为空，请在 data.json 中配置 loadList")
         input("任意键退出")
@@ -156,7 +157,7 @@ def stateLoad():
     if sta["musicIndex"] is None:
         sta["musicIndex"] = 0
         if sta["playing"] is not None:
-            print(f"""未找到音乐 {sta["playing"]}""")
+            print(f"""error: 未找到音乐 {sta["playing"]}""")
     pygame.mixer.music.set_volume(sta["volume"] / 100)
 
 
@@ -164,19 +165,24 @@ if __name__ == "__main__":
     pygame.init()
     pygame.mixer.init()
 
+    # 加载 data.json
     stateLoad()
 
+    # 加载热键
+    for i in sta["hotkey"]:
+        if sta["hotkey"][i] is not None:
+            keyboard.add_hotkey(
+                sta["hotkey"][i], methods.__getattribute__(i))
+
+    # 执行 initialize 命令
     methods.play()
     for i in sta["initialize"]:
         methods.run(i)
 
-    for i in sta["hotkey"]:
-        if sta["hotkey"][i] is not None:
-            keyboard.add_hotkey(
-                sta["hotkey"][i], methods.__getattribute__(i), suppress=True)
+    # 启动检查结束线程
+    checkFinish.start()
 
-    mainLoop.start()
-
+    # 命令行输入
     while True:
         cmd = input()
         try:
