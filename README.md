@@ -1,22 +1,19 @@
 # music-player
 
+用 pygame 写的音乐播放器（黑白框界面，经支持热键）
+
 快速使用：
 
 安装 python，用 pip 安装 keyboard, pygame。
 
-运行 MusicPlayer.py 生成 data.json，在 data.json 中 loadList 项里写入文件夹或文件的路径，可以写多个，例如：
+运行 MusicPlayer.py 生成 data.json，在 data.json 中 loadList 项里写入文件夹或文件的路径，可以写多个。
 
-```json
-{
-    "loadList": [
-        "./music"
-    ],
-}
-```
+- 注意反斜杠 `\` 需要用 `\\` 表示，或换成斜杠 `/`。
+- 文件夹末尾不能有斜杠或反斜杠。
+- 文件只能是 mp3 文件，文件夹内只能有 mp3 文件。
+- 例如：`"loadList": ["./music/a.mp3", "D:\\music"]`。
 
-注意反斜杠 `\` 需要用 `\\` 表示，或换成斜杠 `/`。
-
-hotkey 表示所有的热键，其中：
+hotkey 表示所有的热键，值用 `ctrl+s` 的形式表示，键的含义：
 
 - play 重新播放当前音乐
 - next 播放目录的下一首
