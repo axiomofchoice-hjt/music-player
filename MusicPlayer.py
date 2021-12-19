@@ -186,7 +186,7 @@ def stateLoad():  # 加载 data.json
             print(f"""error: {path} 不是文件或目录""")
     if len(sta["musicList"]) == 0:
         print("音乐列表为空，请在 data.json 中配置 loadList")
-        input("任意键退出")
+        input("回车键退出")
         exit()
 
     sta["musicIndex"] = None
